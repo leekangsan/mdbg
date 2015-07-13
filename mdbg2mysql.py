@@ -2,11 +2,10 @@ __author__ = 'm.cherkasov'
 
 import sys
 import re
+from bs4 import BeautifulSoup
 
-try:
-    file_name = sys.argv[1]
-    print("filename: ", file_name)
-    f = open(file_name)
+def chinese_dictionary(input_file):
+    f = open(input_file)
     fw = open('chinese_dictionary.sql', 'w')
     i = 0
     for line in f:
@@ -25,7 +24,46 @@ try:
 
     print("Lines: ", i)
 
+
+def extract_from_tag(tag, line):
+    opener = "<" + tag + ">"
+    closer = "</" + tag + ">"
+    try:
+        i = line.index(opener)
+        start = i + len(opener)
+        j = line.index(closer, start)
+        return line[start:j]
+    except ValueError:
+        return None
+
+
+def chinese_html(input_file):
+    f = open(input_file, newline='', encoding='utf8')
+    # fw = open('chinese_dictionary.sql', 'w')
+    i = 0
+
+    for line in f:
+        tr = extract_from_tag("tr", line)
+        if tr is not None:
+            print(tr)
+            i += 1
+
+    print("Lines: ", i)
+
+
+try:
+    file_name = sys.argv[2]
+    mode = sys.argv[1]
+    print("filename: ", file_name)
+    if mode == "html":
+        f = open(file_name, newline='', encoding='utf8')
+        soup = BeautifulSoup(f, 'html.parser')
+        print(soup.find_all('tr'))
+        # chinese_html(file_name)
+    if mode == "dict":
+        chinese_dictionary(file_name)
+
 except IndexError:
-    print("usage: ", sys.argv[0], " <filename>")
+    print("usage: ", sys.argv[0], " dict|html <filename>")
 except FileNotFoundError:
     print("File with name: ", file_name, " not found!")
